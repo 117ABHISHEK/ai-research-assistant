@@ -1,4 +1,4 @@
-import os
+﻿import os
 os.environ.setdefault("PYTHONUTF8", "1")
 os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 
@@ -37,7 +37,7 @@ class DocumentClassifier:
         if self.model is None:
             return {"category": "Unknown", "confidence": 0.0, "error": "Model not loaded"}
 
-        # Truncate very long text — model was trained on abstract-length text (~200 tokens)
+        # Truncate very long text â€” model was trained on abstract-length text (~200 tokens)
         truncated = text[:3000]
 
         input_tensor = tf.constant([truncated], dtype=tf.string)
@@ -57,5 +57,19 @@ class DocumentClassifier:
         }
 
 
-# Singleton instance — loaded once at app startup, reused across requests
-document_classifier = DocumentClassifier()
+# Lazy singleton — avoids loading the TensorFlow model at import time.
+_document_classifier_instance = None
+
+def get_document_classifier():
+    global _document_classifier_instance
+    if _document_classifier_instance is None:
+        _document_classifier_instance = DocumentClassifier()
+    return _document_classifier_instance
+
+
+class _LazyDocumentClassifier:
+    def __getattr__(self, name):
+        return getattr(get_document_classifier(), name)
+
+
+document_classifier = _LazyDocumentClassifier()

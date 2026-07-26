@@ -1,4 +1,4 @@
-from groq import Groq
+﻿from groq import Groq
 from typing import List, Dict, Any
 import logging
 
@@ -103,5 +103,19 @@ class RAGQuestionAnswering:
         }
 
 
-# Singleton instance
-rag_qa = RAGQuestionAnswering()
+# Lazy singleton — avoids initializing the Groq client at import time.
+_rag_qa_instance = None
+
+def get_rag_qa():
+    global _rag_qa_instance
+    if _rag_qa_instance is None:
+        _rag_qa_instance = RAGQuestionAnswering()
+    return _rag_qa_instance
+
+
+class _LazyRagQA:
+    def __getattr__(self, name):
+        return getattr(get_rag_qa(), name)
+
+
+rag_qa = _LazyRagQA()

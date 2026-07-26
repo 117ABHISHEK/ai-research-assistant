@@ -1,4 +1,4 @@
-import os
+﻿import os
 os.environ["USE_TF"] = "0" 
 os.environ.setdefault("PYTHONUTF8", "1")
 os.environ.setdefault("PYTHONIOENCODING", "utf-8")
@@ -101,5 +101,20 @@ class VectorStoreManager:
         logger.info(f"Deleted all chunks for doc_id={doc_id}")
 
 
-# Singleton instance — reused across the app to avoid reloading the embedding model repeatedly
-vector_store_manager = VectorStoreManager()
+# Lazy singleton — avoids loading the embedding model at import time,
+# which would delay port binding on platforms like Render.
+_vector_store_manager_instance = None
+
+def get_vector_store_manager():
+    global _vector_store_manager_instance
+    if _vector_store_manager_instance is None:
+        _vector_store_manager_instance = VectorStoreManager()
+    return _vector_store_manager_instance
+
+
+class _LazyVectorStoreManager:
+    def __getattr__(self, name):
+        return getattr(get_vector_store_manager(), name)
+
+
+vector_store_manager = _LazyVectorStoreManager()
