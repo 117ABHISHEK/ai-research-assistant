@@ -1,4 +1,4 @@
-# AI Research & Knowledge Assistant
+ï»¿# AI Research & Knowledge Assistant
 
 A production-oriented backend for uploading, searching, and reasoning over technical documents using Retrieval-Augmented Generation (RAG), semantic search, and a custom TensorFlow document classifier.
 
@@ -153,15 +153,15 @@ Full interactive documentation is auto-generated at `/docs` (Swagger) and `/open
 ## 7. Assumptions
 
 - Uploaded documents are text-based PDFs (not scanned/image-only); OCR was out of scope given the project timeline.
-- Single-user system — no authentication layer was implemented (listed as a bonus feature in the spec).
+- Single-user system ï¿½ no authentication layer was implemented (listed as a bonus feature in the spec).
 - Conversation memory is scoped per `session_id` provided by the client, not tied to user accounts.
 - The TensorFlow classifier's 7 categories match the assignment's example list; documents outside these domains will still receive a best-effort classification.
 
 ## 8. Design Decisions
 
-**Groq (Llama 3.3 70B) instead of OpenAI GPT-4o.** The reference architecture suggested OpenAI for both embeddings and generation. OpenAI requires a paid billing account, which wasn't available for this project. Groq offers a free, fast API with an OpenAI-compatible response structure, so it was used as a drop-in replacement for the LLM layer with no architectural compromise — the RAG chain's contract (context in, grounded answer + citations out) is unchanged.
+**Groq (Llama 3.3 70B) instead of OpenAI GPT-4o.** The reference architecture suggested OpenAI for both embeddings and generation. OpenAI requires a paid billing account, which wasn't available for this project. Groq offers a free, fast API with an OpenAI-compatible response structure, so it was used as a drop-in replacement for the LLM layer with no architectural compromise ï¿½ the RAG chain's contract (context in, grounded answer + citations out) is unchanged.
 
-**sentence-transformers (all-MiniLM-L6-v2) instead of OpenAIEmbeddings.** Same reasoning as above — this model runs locally, is free, and is a widely-used, well-benchmarked choice for semantic search at this scale.
+**sentence-transformers (all-MiniLM-L6-v2) instead of OpenAIEmbeddings.** Same reasoning as above ï¿½ this model runs locally, is free, and is a widely-used, well-benchmarked choice for semantic search at this scale.
 
 **Fixed-size character chunking (1000 chars, 150 overlap) instead of sentence/semantic-aware chunking.** Simpler to implement and reason about under time constraints, fully deterministic, and the overlap prevents context loss across chunk boundaries. A more advanced sentence-boundary-aware or semantic chunker is a natural next step (see Future Improvements).
 
@@ -169,13 +169,13 @@ Full interactive documentation is auto-generated at `/docs` (Swagger) and `/open
 
 **In-memory dict for conversation history instead of SQL-backed session storage.** A `ConversationMemory` table exists in the schema for future persistence, but given the time budget, an in-memory dictionary keyed by `session_id` was used for the actual working implementation. This satisfies the functional requirement (follow-up questions resolve correctly) without the added complexity of session lifecycle management in SQL.
 
-**Confidence score as a retrieval-distance proxy.** Rather than a separate calibration model, RAG answer confidence is derived from the average cosine distance of retrieved chunks (normalized to 0–1). This is a lightweight, defensible approximation — lower retrieval distance (closer semantic match) maps to higher confidence.
+**Confidence score as a retrieval-distance proxy.** Rather than a separate calibration model, RAG answer confidence is derived from the average cosine distance of retrieved chunks (normalized to 0ï¿½1). This is a lightweight, defensible approximation ï¿½ lower retrieval distance (closer semantic match) maps to higher confidence.
 
 ## 9. Limitations
 
-- The TensorFlow classifier was trained on ~560 arXiv paper abstracts (80 per category) due to time constraints. Validation accuracy (~55%) reflects this small dataset size — a larger, more diverse labelled corpus would improve real-world generalization, especially for non-academic documents (e.g., resumes, business documents) which the model wasn't trained on.
-- No hybrid search (BM25 + vector) — only semantic and keyword search modes are implemented, as hybrid retrieval was listed as a bonus feature.
-- No authentication or multi-user support — single-session usage is assumed.
+- The TensorFlow classifier was trained on ~560 arXiv paper abstracts (80 per category) due to time constraints. Validation accuracy (~55%) reflects this small dataset size ï¿½ a larger, more diverse labelled corpus would improve real-world generalization, especially for non-academic documents (e.g., resumes, business documents) which the model wasn't trained on.
+- No hybrid search (BM25 + vector) ï¿½ only semantic and keyword search modes are implemented, as hybrid retrieval was listed as a bonus feature.
+- No authentication or multi-user support ï¿½ single-session usage is assumed.
 - Conversation memory does not persist across server restarts (in-memory only).
 - Confidence scores across all endpoints are heuristic approximations, not calibrated probability estimates.
 
@@ -189,6 +189,6 @@ Full interactive documentation is auto-generated at `/docs` (Swagger) and `/open
 - Add OCR support (e.g., Tesseract) for scanned/image-based PDFs.
 - Containerize with Docker and add a CI/CD pipeline for automated testing and deployment.
 
-## 11. Sample Documents
 
-Sample PDF included: `data/raw_documents/Abhishek_CV_OnePage.pdf` (used during development and testing).
+
+**Live Demo:** https://ai-research-assistant-l772.onrender.com/docs (Note: free-tier instance spins down after ~15 min of inactivity â€” first request may take 30-60s to wake up. Uploaded documents don't persist across redeploys due to ephemeral storage.)
