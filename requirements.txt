@@ -14,11 +14,9 @@ sqlalchemy==2.0.35
 # --- PDF Processing ---
 pymupdf==1.24.10
 
-# --- Embeddings ---
-sentence-transformers==3.1.1
-
-# --- Vector Database ---
+# --- Vector Database (embedding function runs via onnxruntime, no torch needed) ---
 chromadb==0.5.11
+onnxruntime==1.19.2
 
 # --- LLM (Groq - free tier, no billing) ---
 groq==0.11.0

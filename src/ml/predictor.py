@@ -2,7 +2,6 @@
 os.environ.setdefault("PYTHONUTF8", "1")
 os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 
-import tensorflow as tf
 import pickle
 import logging
 
@@ -18,9 +17,12 @@ class DocumentClassifier:
         self.model = None
         self.label_to_id = None
         self.id_to_label = None
-        self._load()
+        self._loaded = False
 
     def _load(self):
+        # Import tensorflow only when actually needed — keeps app startup fast
+        import tensorflow as tf
+
         try:
             self.model = tf.keras.models.load_model(settings.TF_MODEL_PATH)
             with open(settings.TOKENIZER_PATH, "rb") as f:
@@ -31,15 +33,22 @@ class DocumentClassifier:
         except Exception as e:
             logger.error(f"Failed to load classifier model: {e}")
             self.model = None
+        finally:
+            self._loaded = True
+
+    def _ensure_loaded(self):
+        if not self._loaded:
+            self._load()
 
     def predict(self, text: str) -> dict:
-        """Classifies a document's text into one of the trained categories."""
+        import tensorflow as tf
+
+        self._ensure_loaded()
+
         if self.model is None:
             return {"category": "Unknown", "confidence": 0.0, "error": "Model not loaded"}
 
-        # Truncate very long text â€” model was trained on abstract-length text (~200 tokens)
         truncated = text[:3000]
-
         input_tensor = tf.constant([truncated], dtype=tf.string)
         predictions = self.model.predict(input_tensor, verbose=0)[0]
 
@@ -57,7 +66,7 @@ class DocumentClassifier:
         }
 
 
-# Lazy singleton — avoids loading the TensorFlow model at import time.
+# Lazy singleton — no TensorFlow import or model load happens until first actual use.
 _document_classifier_instance = None
 
 def get_document_classifier():
